@@ -65,7 +65,7 @@ ROBOTSTXT_OBEY = True
 #ITEM_PIPELINES = {
 #    'auschreibungscraper.pipelines.AuschreibungscraperPipeline': 300,
 #}
-ITEM_PIPELINES = {'scrapy.pipelines.files.FilesPipeline': 1}
+ITEM_PIPELINES = {'scrapy.pipelines.files.FilesPipeline': 1, 'auschreibungscraper.pipelines.AuschreibungscraperPipeline': 300,}
 FILES_STORE = 'files/'
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -83,8 +83,8 @@ FILES_STORE = 'files/'
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-#HTTPCACHE_ENABLED = True
-#HTTPCACHE_EXPIRATION_SECS = 0
-#HTTPCACHE_DIR = 'httpcache'
+HTTPCACHE_ENABLED = True
+HTTPCACHE_EXPIRATION_SECS = 0
+HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
-#HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'

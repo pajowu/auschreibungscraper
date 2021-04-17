@@ -3,6 +3,8 @@ import urllib.parse
 import html_text
 import scrapy
 
+from ..items import Attachment, Message, PublicatingEntity, Publication
+
 
 class VergabekooperationSpider(scrapy.Spider):
     name = "vergabekooperation"
@@ -27,10 +29,17 @@ class VergabekooperationSpider(scrapy.Spider):
     def parse_detail(self, response):
         download_path = response.css(".downloadDocuments").css("a").xpath("@href").get()
         download_url = response.urljoin(download_path)
-        yield response.follow(download_url, callback=self.parse_detail_2, meta={'cookiejar': download_path})
+        yield response.follow(
+            download_url,
+            callback=self.parse_detail_2,
+            meta={"cookiejar": download_path},
+        )
 
         publication_tables = response.css(".tableContractNotice")
-        publication_data = {None: {"attachment_download_url": download_url}, "__type": "Detail"}
+        publication_data = {
+            None: {"attachment_download_url": download_url},
+            "__type": "Detail",
+        }
         for publication_table in publication_tables:
             publication_section = publication_table.css(".color-main::text").get()
             if not publication_section in publication_data:
@@ -46,8 +55,12 @@ class VergabekooperationSpider(scrapy.Spider):
         yield publication_data
 
     def parse_detail_2(self, response):
-        cookiejar = response.meta['cookiejar']
-        data = {"attachment_versions": [], "messages": [], "__type": "Attachement_Messages"}
+        cookiejar = response.meta["cookiejar"]
+        data = {
+            "attachment_versions": [],
+            "messages": [],
+            "__type": "Attachement_Messages",
+        }
         for download_version in response.css(".zipFileContents"):
             oid = download_version.xpath("@data-oid").get()
             token = download_version.xpath("@data-token").get()
@@ -78,22 +91,50 @@ class VergabekooperationSpider(scrapy.Spider):
                 callback=self.parse_dataprovider_publicmessagedetail,
             )
 
+    def _parse_filetree_section(self, doc_oid, json):
+        file_urls = []
+        for name, file in json.items():
+            if '0' in file:
+                file_urls += self._parse_filetree_section(doc_oid, file)
+            else:
+                url = f"https://vergabekooperation.berlin/NetServer/TenderingProcedureDetails?function=_DownloadTenderDocument&documentOID={doc_oid}&Document={file['encodedName']}"
+                file_urls.append(url)
+        # for section_name, section in response_json.items():
+        #     for idx, file in section.items():
+        #         print(file)
+        #         url = f"https://vergabekooperation.berlin/NetServer/TenderingProcedureDetails?function=_DownloadTenderDocument&documentOID={}&Document={file['encodedName']}"
+        #         file_urls.append(url)
+        return file_urls
+
     def parse_dataprovider_filetree(self, response):
         # cookiejar = response.meta['cookiejar']
         if not response.text:
-            import pdb;pdb.set_trace()
+            import pdb; pdb.set_trace()
         print("Response Text", response.text)
         response_json = response.json()
         file_urls = []
-        for section_name, section in response_json.items():
-            for idx, file in section.items():
-                url = f"https://vergabekooperation.berlin/NetServer/TenderingProcedureDetails?function=_DownloadTenderDocument&documentOID={response.meta['documentOID']}&Document={file['encodedName']}"
-                file_urls.append(url)
+        file_urls = self._parse_filetree_section(response.meta['documentOID'], response_json)
         yield {"FileTree": response_json, "file_urls": file_urls, "__type": "FileTree"}
 
     def parse_dataprovider_publicmessagedetail(self, response):
         # TODO
         print(self, response.text)
+        response_json = response.json()
+        msg = Message(
+            date=response_json["time"],  # TODO: Parse
+            title=response_json["subject"],
+            body=response_json["body"],
+            publication_id=response_json["tenderOID"],
+            data={
+                "authorityKey": response_json["authorityKey"],
+                "tender": response_json["tender"],
+            },
+        )
+        if "attachmentLink" in response_json:
+            msg['file_name']=response_json["fileName"]
+            msg['file_urls']=[response.urljoin(response_json["attachmentLink"])]
+
+        return msg
 
     def parse_downloaded_file(self, response):
         with open(f"{response.meta['filename']}", "wb") as f:

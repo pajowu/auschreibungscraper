@@ -6,7 +6,29 @@
 import scrapy
 
 
-class AuschreibungscraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class Message(scrapy.Item):
+    date = scrapy.Field()
+    title = scrapy.Field()
+    body = scrapy.Field()
+    publication_id = scrapy.Field()
+    data = scrapy.Field()
+    file_name = scrapy.Field()
+    file_urls = scrapy.Field()
+    files = scrapy.Field()
+
+class Attachment(scrapy.Item):
+    id = scrapy.Field()
+    name = scrapy.Field()
+    file_urls = scrapy.Field()
+    files = scrapy.Field()
+
+class PublicatingEntity(scrapy.Item):
+    name = scrapy.Field()
+
+class Publication(scrapy.Item):
+    id = scrapy.Field()
+    title = scrapy.Field()
+    publicated_by = scrapy.Field()
+    data = scrapy.Field()
+    attachments = scrapy.Field()
+    messages = scrapy.Field()
