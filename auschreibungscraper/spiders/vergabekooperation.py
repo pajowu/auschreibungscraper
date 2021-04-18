@@ -137,8 +137,8 @@ class VergabekooperationSpider(scrapy.Spider):
         msg = Message(
             oid = response.meta['messageOID'],
             date=response_json["time"],  # TODO: Parse
-            title=response_json["subject"],
-            body=response_json["body"],
+            title=html_text.extract_text(response_json["subject"]),
+            body=html_text.extract_text(response_json["body"]),
             publication_id=response_json["tenderOID"],
             data={
                 "authorityKey": response_json["authorityKey"],
