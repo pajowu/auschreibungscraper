@@ -7,6 +7,7 @@ import scrapy
 
 
 class Message(scrapy.Item):
+    oid = scrapy.Field()
     date = scrapy.Field()
     title = scrapy.Field()
     body = scrapy.Field()

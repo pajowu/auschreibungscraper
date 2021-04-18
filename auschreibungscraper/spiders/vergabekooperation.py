@@ -82,7 +82,7 @@ class VergabekooperationSpider(scrapy.Spider):
             yield scrapy.http.FormRequest(
                 "https://vergabekooperation.berlin/NetServer/DataProvider",
                 formdata={"param": "FileTree", "oid": oid, "VALIDATION_TOKEN": token},
-                meta={"documentOID": oid, "respon": response, "cookiejar": cookiejar},
+                meta={"documentOID": response.meta['oid'], "oid":oid, "respon": response, "cookiejar": cookiejar},
                 callback=self.parse_dataprovider_filetree,
             )
 
@@ -97,7 +97,7 @@ class VergabekooperationSpider(scrapy.Spider):
             yield scrapy.http.FormRequest(
                 "https://vergabekooperation.berlin/NetServer/DataProvider",
                 formdata={"param": "PublicMessageDetail", "oid": oid},
-                meta={"documentOID": oid},
+                meta={"documentOID": response.meta['oid'], "messageOID": oid},
                 callback=self.parse_dataprovider_publicmessagedetail,
             )
 
@@ -127,7 +127,7 @@ class VergabekooperationSpider(scrapy.Spider):
         response_json = response.json()
         file_urls = []
         file_urls = self._parse_filetree_section(response.meta['documentOID'], response_json)
-        return Attachments(oid=response.meta['documentOID'], file_urls=file_urls, raw=response_json)
+        return Attachments(oid=response.meta['oid'], file_urls=file_urls, raw=response_json)
         # yield {"FileTree": response_json, "file_urls": file_urls, "__type": "FileTree"}
 
     def parse_dataprovider_publicmessagedetail(self, response):
@@ -135,6 +135,7 @@ class VergabekooperationSpider(scrapy.Spider):
         # print(self, response.text)
         response_json = response.json()
         msg = Message(
+            oid = response.meta['messageOID'],
             date=response_json["time"],  # TODO: Parse
             title=response_json["subject"],
             body=response_json["body"],

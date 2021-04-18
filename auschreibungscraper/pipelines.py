@@ -11,7 +11,6 @@ from itemadapter import ItemAdapter
 from .items import Attachments, Message, PublicatingEntity, Publication
 
 
-# TODO: To PATCH-style upserts instead of inserts
 class AuschreibungscraperPipeline:
 
     def open_spider(self, spider):
@@ -23,23 +22,25 @@ class AuschreibungscraperPipeline:
 
     def _process_message(self, item):
         try:
-            self.msg_table.insert(item, types={"data": self.db.types.json, "files": self.db.types.json, "file_urls": self.db.types.json})
+            self.msg_table.upsert(item, ['oid'], types={"data": self.db.types.json, "files": self.db.types.json, "file_urls": self.db.types.json})
         except:
             import pdb;pdb.set_trace()
 
     def _process_attachment(self, item):
         try:
-            self.attachment_table.insert(item, types={"raw": self.db.types.json, "file_urls":self.db.types.json, "files": self.db.types.json})
+            self.attachment_table.upsert(item, ['oid'], types={"raw": self.db.types.json, "file_urls":self.db.types.json, "files": self.db.types.json})
         except:
             import pdb;pdb.set_trace()
 
     def _process_publication(self, item):
         try:
-            self.publication_table.insert(item, types={"data":self.db.types.json, "attachments": self.db.types.json, "messages": self.db.types.json})
+            self.publication_table.upsert(item, ['oid'], types={"data":self.db.types.json, "attachments": self.db.types.json, "messages": self.db.types.json})
         except:
             import pdb;pdb.set_trace()
 
     def _process_publicating_entity(self, item):
+
+        # TODO: To PATCH-style upserts instead of inserts
         try:
             self.publicating_entity.insert(item)
         except:
