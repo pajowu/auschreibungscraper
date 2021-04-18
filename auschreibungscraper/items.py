@@ -16,17 +16,19 @@ class Message(scrapy.Item):
     file_urls = scrapy.Field()
     files = scrapy.Field()
 
-class Attachment(scrapy.Item):
-    id = scrapy.Field()
+class Attachments(scrapy.Item):
+    oid = scrapy.Field()
     name = scrapy.Field()
     file_urls = scrapy.Field()
     files = scrapy.Field()
+    raw = scrapy.Field()
+    # TODO: Tree
 
 class PublicatingEntity(scrapy.Item):
     name = scrapy.Field()
 
 class Publication(scrapy.Item):
-    id = scrapy.Field()
+    oid = scrapy.Field()
     title = scrapy.Field()
     publicated_by = scrapy.Field()
     data = scrapy.Field()

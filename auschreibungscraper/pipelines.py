@@ -8,9 +8,10 @@ import dataset
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-from .items import Attachment, Message, PublicatingEntity, Publication
+from .items import Attachments, Message, PublicatingEntity, Publication
 
 
+# TODO: To PATCH-style upserts instead of inserts
 class AuschreibungscraperPipeline:
 
     def open_spider(self, spider):
@@ -28,7 +29,7 @@ class AuschreibungscraperPipeline:
 
     def _process_attachment(self, item):
         try:
-            self.attachment_table.insert(item, types={"file_urls":self.db.types.json})
+            self.attachment_table.insert(item, types={"raw": self.db.types.json, "file_urls":self.db.types.json, "files": self.db.types.json})
         except:
             import pdb;pdb.set_trace()
 
@@ -45,7 +46,7 @@ class AuschreibungscraperPipeline:
             import pdb;pdb.set_trace()
 
     def process_item(self, item, spider):
-        if isinstance(item, Attachment):
+        if isinstance(item, Attachments):
             self._process_attachment(item)
         elif isinstance(item, Message):
             self._process_message(item)
@@ -54,4 +55,6 @@ class AuschreibungscraperPipeline:
         elif isinstance(item, PublicatingEntity):
             self._process_publicating_entity(item)
         else:
-            raise NotSupported(f"unknown entity: {type(item)}")
+            raise NotImplementedError(f"unknown entity: {type(item)}")
+
+        return item
